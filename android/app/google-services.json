@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "686472546707",
+    "project_id": "zee-chat-c04c3",
+    "storage_bucket": "zee-chat-c04c3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:686472546707:android:4c7c8eba7148a4232c8066",
+        "android_client_info": {
+          "package_name": "com.example.untitled2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "686472546707-rqhc212ikncgtb7k7l4tv0i9ajeops6q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.untitled2",
+            "certificate_hash": "a1374579ad882f38a5c5af54124ddf6db9007afb"
+          }
+        },
+        {
+          "client_id": "686472546707-3gg07sh80rrn11ib2dklii69jfjrb88h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCI_7-Xmd7vbVMA-mWy0r3lv8kT5XT0Wq0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "686472546707-3gg07sh80rrn11ib2dklii69jfjrb88h.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "686472546707-utage00tulbjenbc8h4apm5e8hth07hg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.untitled2"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
