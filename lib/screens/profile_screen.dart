@@ -12,6 +12,7 @@ import 'package:untitled2/helper/progress_bar_fix.dart';
 import 'package:untitled2/models/chat_user.dart';
 import 'package:untitled2/screens/auth/login_screen.dart';
 import '../main.dart';
+import 'package:untitled2/services/cloudinary_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final ChatUser user;
@@ -69,30 +70,35 @@ class _ProfileScreen extends State<ProfileScreen> {
                   SizedBox(width: mq.width, height: mq.height * .03),
                   Stack(
                     children: [
-                      _image !=null ?
-                          ///for local image
-                  ClipRRect(
-                  borderRadius: BorderRadius.circular(mq.height * .1),
-              child: Image.file(
-                File(_image!),
-                width: mq.height * .2,
-                height: mq.height * .2,
-                fit: BoxFit.cover,
-              ),
-            ):
-
-                      ///image from server
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(mq.height * .1),
-                        child: CachedNetworkImage(
-                          width: mq.height * .2,
-                          height: mq.height * .2,
-                          fit: BoxFit.cover,
-                          imageUrl: widget.user.image,
-                          errorWidget: (context, url, error) =>
-                              CircleAvatar(child: Icon(Icons.person)),
-                        ),
-                      ),
+                      _image != null
+                          ?
+                            ///for local image
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                mq.height * .1,
+                              ),
+                              child: Image.file(
+                                File(_image!),
+                                width: mq.height * .2,
+                                height: mq.height * .2,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          :
+                            ///image from server
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                mq.height * .1,
+                              ),
+                              child: CachedNetworkImage(
+                                width: mq.height * .2,
+                                height: mq.height * .2,
+                                fit: BoxFit.cover,
+                                imageUrl: widget.user.image,
+                                errorWidget: (context, url, error) =>
+                                    CircleAvatar(child: Icon(Icons.person)),
+                              ),
+                            ),
 
                       ///for edit butttoon
                       Positioned(
@@ -198,73 +204,114 @@ class _ProfileScreen extends State<ProfileScreen> {
       context: context,
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
-
         borderRadius: BorderRadiusGeometry.only(
-
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
       ),
       builder: (_) {
         return ListView(
-
           shrinkWrap: true,
           padding: EdgeInsets.only(
             top: mq.height * .03,
             bottom: mq.height * .03,
           ),
           children: [
-
             const Text(
               'Pick Profile Picture',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
             ),
-            SizedBox(height: mq.height*.02,),
-            Row( mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            SizedBox(height: mq.height * .02),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ///pick picture from gallery button
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                   backgroundColor: Colors.white,
-                    fixedSize: Size(mq.width*.3, mq.height*.15)
+                    backgroundColor: Colors.white,
+                    fixedSize: Size(mq.width * .3, mq.height * .15),
                   ),
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
-                     // Pick an image.
-                    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                    if(image!= null){
-                      log('Image_path ${image.path} -- MimeType ${image.mimeType}');
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.gallery,
+                    );
+
+                    if (image != null) {
+                      log('Image_path ${image.path}');
+
+                      //  local preview ke liye
                       setState(() {
-                        _image= image.path;
+                        _image = image.path;
                       });
-                     ///for hiding bottom sheet
+
+                      // bottom sheet band karo
                       Navigator.pop(context);
+
+                      // file banao
+                      File file = File(image.path);
+
+                      // Cloudinary upload karo
+                      String? imageUrl = await CloudinaryService.uploadImage(
+                        file,
+                      );
+
+                      // 5️⃣ agar upload successful ho
+                      if (imageUrl != null) {
+                        APIs.me.image = imageUrl;
+                        await APIs.updateUserInfo();
+
+                        Dialogs.showsnackbar(
+                          context,
+                          'Profile Picture Updated',
+                        );
+                      }
                     }
                   },
+
+                  // onPressed: () async {
+                  //   final ImagePicker picker = ImagePicker();
+                  //    // Pick an image.
+                  //   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                  //   if(image!= null){
+                  //     log('Image_path ${image.path} ');
+                  //     setState(() {
+                  //       _image= image.path;
+                  //     });
+                  //    ///for hiding bottom sheet
+                  //     Navigator.pop(context);
+                  //   }
+                  // },
                   child: Image.asset('assets/images/add_image.png'),
                 ),
+
                 ///take picture from camera button
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                     backgroundColor: Colors.white,
-                      fixedSize: Size(mq.width*.3, mq.height*.15)
+                    backgroundColor: Colors.white,
+                    fixedSize: Size(mq.width * .3, mq.height * .15),
                   ),
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
                     // Pick an image.
-                    final XFile? image = await picker.pickImage(source: ImageSource.camera);
-                    if(image!= null){
-                      log('Image_path ${image.path} -- MimeType ${image.mimeType}');
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.camera,
+                    );
+                    if (image != null) {
+                      log(
+                        'Image_path ${image.path} -- MimeType ${image.mimeType}',
+                      );
                       setState(() {
-                        _image= image.path;
+                        _image = image.path;
                       });
+
                       ///for hiding bottom sheet
                       Navigator.pop(context);
                     }
                   },
                   child: Image.asset('assets/images/camera.png'),
-                )
+                ),
               ],
             ),
           ],
