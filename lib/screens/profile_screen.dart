@@ -294,21 +294,41 @@ class _ProfileScreen extends State<ProfileScreen> {
                   ),
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
-                    // Pick an image.
                     final XFile? image = await picker.pickImage(
-                      source: ImageSource.camera,
+                      source: ImageSource.gallery,
                     );
+
                     if (image != null) {
-                      log(
-                        'Image_path ${image.path} -- MimeType ${image.mimeType}',
-                      );
+                      log('Image_path ${image.path}');
+
+                      //  local preview ke liye
                       setState(() {
                         _image = image.path;
                       });
 
-                      ///for hiding bottom sheet
+                      // bottom sheet band karo
                       Navigator.pop(context);
+
+                      // file banao
+                      File file = File(image.path);
+
+                      // Cloudinary upload karo
+                      String? imageUrl = await CloudinaryService.uploadImage(
+                        file,
+                      );
+
+                      // 5️⃣ agar upload successful ho
+                      if (imageUrl != null) {
+                        APIs.me.image = imageUrl;
+                        await APIs.updateUserInfo();
+
+                        Dialogs.showsnackbar(
+                          context,
+                          'Profile Picture Updated',
+                        );
+                      }
                     }
+
                   },
                   child: Image.asset('assets/images/camera.png'),
                 ),
