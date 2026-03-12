@@ -87,6 +87,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
 
 
+
   @override
   void initState() {
 
@@ -94,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(milliseconds: 2000), () {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
+        const SystemUiOverlayStyle(statusBarColor: Colors.white,systemNavigationBarColor: Colors.white),
       );
 
       if (APIs.auth.currentUser != null) {

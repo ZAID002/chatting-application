@@ -32,14 +32,14 @@ class _ProfileScreen extends State<ProfileScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(title: const Text(' Profile Screen')),
-        //floating add button to add new user
+        ///floating add button to add new user
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: FloatingActionButton.extended(
             backgroundColor: Colors.redAccent,
             onPressed: () async {
-              //fix class is used from helper directory /progress_bar_fix.dart
-              //for showing progress dialog
+              ///fix class is used from helper directory /progress_bar_fix.dart
+              ///for showing progress dialog
               Fix.showprogress(context);
               //signout from app
               await APIs.auth.signOut().then((value) async {
@@ -230,7 +230,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    fixedSize: Size(mq.width * .3, mq.height * .15),
+                    fixedSize: Size(mq.width * .3, mq.height * .10),
                   ),
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
@@ -270,19 +270,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                     }
                   },
 
-                  // onPressed: () async {
-                  //   final ImagePicker picker = ImagePicker();
-                  //    // Pick an image.
-                  //   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                  //   if(image!= null){
-                  //     log('Image_path ${image.path} ');
-                  //     setState(() {
-                  //       _image= image.path;
-                  //     });
-                  //    ///for hiding bottom sheet
-                  //     Navigator.pop(context);
-                  //   }
-                  // },
+
                   child: Image.asset('assets/images/add_image.png'),
                 ),
 
@@ -290,7 +278,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    fixedSize: Size(mq.width * .3, mq.height * .15),
+                    fixedSize: Size(mq.width * .3, mq.height * .10),
                   ),
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
