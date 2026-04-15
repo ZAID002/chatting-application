@@ -2,6 +2,7 @@ import 'dart:core';
 import 'dart:developer';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -41,13 +42,14 @@ class _ProfileScreen extends State<ProfileScreen> {
               ///fix class is used from helper directory /progress_bar_fix.dart
               ///for showing progress dialog
               Fix.showprogress(context);
+              await APIs.updateActiveStatus(false);
               //signout from app
               await APIs.auth.signOut().then((value) async {
                 await GoogleSignIn().signOut().then((value) {
                   //for hiding progress dialog
                   Navigator.pop(context);
                   Navigator.pop(context);
-
+APIs.auth=FirebaseAuth.instance;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (_) => LoginScreen()),
@@ -283,7 +285,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
                     final XFile? image = await picker.pickImage(
-                      source: ImageSource.gallery,
+                      source: ImageSource.camera,
                     );
 
                     if (image != null) {

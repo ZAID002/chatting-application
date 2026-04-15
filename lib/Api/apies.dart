@@ -67,9 +67,26 @@ class APIs {
       'image': me.image,
     }));
   }
+  ///for geting spcific user info
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getUserInfo(ChatUser chatUser)
+   {
+     return firestore
+         .collection('User')
+         .where('id', isEqualTo: chatUser.id)
+         .snapshots();
+  }
+///update online status or last active time
+  static Future<void> updateActiveStatus(bool isOnline) async {
+    await firestore.collection('User').doc(user.uid).update({
+      'is_online': isOnline, 'last_active': DateTime
+          .now()
+          .millisecondsSinceEpoch
+          .toString()
+    });
+  }
 
   ///***************************** chat screen related apis ******************************
-  //usefull fir getting conversation id:
+  //useful fir getting conversation id:
   // Generates a consistent conversation ID by comparing
   // the UIDs of both users to maintain a fixed order.
   static String getConversationID(String id) {
@@ -87,12 +104,12 @@ class APIs {
   ) {
     return firestore
         .collection('chats/${getConversationID(user.id)}/messages')
-        .orderBy('sent', descending: false)
+        .orderBy('sent', descending: true)
         .snapshots();
   }
 
   ///for sending message
-  static Future<void> sendMessage(ChatUser chatUser, String msg) async {
+  static Future<void> sendMessage(ChatUser chatUser, String msg,{required Type msgType}) async {
     ///message sending time also use as a id
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -101,7 +118,7 @@ class APIs {
       msg: msg,
       toId: chatUser.id,
       read: '',
-      type: Type.text,
+      type: msgType,
       fromId: user.uid,
       sent: time,
     );
@@ -114,13 +131,13 @@ class APIs {
   //chats collection --> conversation_id (doc) --> messages (collection) --> message (doc)
 
   ///update read message of status
-  static Future<void> updateMessageReadStatus(Message message) async { await
-    firestore
+  static Future<void> updateMessageReadStatus(Message message) async {
+    await firestore
         .collection('chats/${getConversationID(message.fromId)}/messages')
         .doc(message.sent)
-        .set({'read': DateTime.now().millisecondsSinceEpoch.toString()},
-    SetOptions(merge: true));
-
+        .set({
+          'read': DateTime.now().millisecondsSinceEpoch.toString(),
+        }, SetOptions(merge: true));
   }
 
   //get only a last message of a specific chat

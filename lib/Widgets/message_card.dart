@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:untitled2/Api/apies.dart';
 import 'package:untitled2/main.dart';
@@ -62,7 +63,16 @@ class _MessageCardState extends State<MessageCard> {
               ),
             ),
 
-            child: Text(
+            child: widget.message.type == Type.images
+                ? CachedNetworkImage(
+              imageUrl: widget.message.msg,
+              fit: BoxFit.cover,
+              placeholder: (context, url) =>
+              const CircularProgressIndicator(),
+              errorWidget: (context, url, error) =>
+              const Icon(Icons.broken_image),
+            )
+                : Text(
               widget.message.msg,
               style: TextStyle(fontSize: 15, color: Colors.black87),
             ),
@@ -130,7 +140,19 @@ class _MessageCardState extends State<MessageCard> {
               ),
             ),
 
-            child: Text(
+            child: widget.message.type == Type.images
+                ? ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: CachedNetworkImage(
+                imageUrl: widget.message.msg,
+                fit: BoxFit.cover,
+                placeholder: (context, url) =>
+                const CircularProgressIndicator(),
+                errorWidget: (context, url, error) =>
+                const Icon(Icons.broken_image),
+              ),
+            )
+                : Text(
               widget.message.msg,
               style: TextStyle(fontSize: 15, color: Colors.black87),
             ),

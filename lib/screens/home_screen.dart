@@ -1,13 +1,14 @@
 import 'dart:core';
-
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:untitled2/Api/apies.dart';
 import 'package:untitled2/Widgets/chat_user_card.dart';
 import 'package:untitled2/main.dart';
 import 'package:untitled2/models/chat_user.dart';
 import 'package:untitled2/screens/profile_screen.dart';
+import 'package:flutter/material.dart';
+import 'dart:developer';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,6 +31,22 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     APIs.getSelfInfo();
+    ///for setting user status to active
+    APIs.updateActiveStatus(true);
+    SystemChannels.lifecycle.setMessageHandler((message) {
+      log("message: $message");
+      ///for updating user active status according to app lifecycle events
+      ///resume // means online
+      ///pause // offline
+      if(APIs.auth.currentUser != null){
+        if(message.toString().contains('pause')) APIs.updateActiveStatus(false);
+        if(message.toString().contains('resume')) APIs.updateActiveStatus(true);
+
+      }
+
+      return Future.value(message);
+    });
+    {}
   }
 
   Widget build(BuildContext context) {

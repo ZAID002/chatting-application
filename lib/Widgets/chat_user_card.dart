@@ -44,15 +44,13 @@ class _ChatUserCardState extends State<ChatUserCard> {
             return ListTile(
               ///user profile image
               /// leading: CircleAvatar(child: Icon(Icons.person),),
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(mq.height * .3),
-                child: CachedNetworkImage(
-                  width: mq.height * .05,
-                  height: mq.height * .05,
-                  imageUrl: widget.user.image,
-                  errorWidget: (context, url, error) =>
-                      CircleAvatar(child: Icon(Icons.person)),
-                ),
+              leading: CircleAvatar(
+                radius: mq.height * .03,
+                backgroundImage: NetworkImage(widget.user.image),
+                onBackgroundImageError: (_, __) {},
+                child: widget.user.image.isEmpty
+                    ? Icon(Icons.person)
+                    : null,
               ),
 
               ///user name
