@@ -48,11 +48,15 @@ dependencies:
   image_picker: ^0.8.6
   # for accessing cloudinary storage
   cloudinary_public: ^0.23.1
-  #http:
-  http: ^1.0.0
+
+  #for firebase messaging push notification
+  firebase_messaging: ^14.2.0
+  #for calling rest apis
+  http: ^1.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -76,6 +80,7 @@ flutter:
     - assets/images/google.png
     - assets/images/add_image.png
     - assets/images/camera.png
+    - assets/images/zeechaticon.png
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

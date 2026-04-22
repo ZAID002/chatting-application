@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
   ///for storing all users
   List<ChatUser> _list = [];
 
@@ -29,12 +30,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+
     super.initState();
+    ///for getting self info
     APIs.getSelfInfo();
-    ///for setting user status to active
-    APIs.updateActiveStatus(true);
+
     SystemChannels.lifecycle.setMessageHandler((message) {
       log("message: $message");
+
       ///for updating user active status according to app lifecycle events
       ///resume // means online
       ///pause // offline

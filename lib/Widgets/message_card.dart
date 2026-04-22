@@ -20,9 +20,12 @@ class _MessageCardState extends State<MessageCard> {
   bool _isReadUpdating = false;
   @override
   Widget build(BuildContext context) {
-    return APIs.user.uid == widget.message.fromId
-        ? _greenmessage()
-        : _bluemessage();
+    bool isMe = APIs.user.uid == widget.message.fromId;
+    return InkWell(onLongPress: () {
+
+      
+    },
+        child: isMe ? _greenmessage() : _bluemessage());
   }
 
   ///sender or another user message
@@ -30,19 +33,21 @@ class _MessageCardState extends State<MessageCard> {
     if (widget.message.read.isEmpty && !_isReadUpdating) {
       _isReadUpdating = true; // isko true kar dein taake dobara loop na chale
 
-      APIs.updateMessageReadStatus(widget.message).then((_) {
-        log("message read updated");
-      }).catchError((e) {
-        // Agar koi error aaye toh flag wapas false kar dein taake dobara retry ho sake
-        _isReadUpdating = false;
-      });
+      APIs.updateMessageReadStatus(widget.message)
+          .then((_) {
+            log("message read updated");
+          })
+          .catchError((e) {
+            // Agar koi error aaye toh flag wapas false kar dein taake dobara retry ho sake
+            _isReadUpdating = false;
+          });
     }
+
     ///update last read message if sender and receiver are different
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-
         //message content
         Flexible(
           child: Container(
@@ -65,58 +70,64 @@ class _MessageCardState extends State<MessageCard> {
 
             child: widget.message.type == Type.images
                 ? CachedNetworkImage(
-              imageUrl: widget.message.msg,
-              fit: BoxFit.cover,
-              placeholder: (context, url) =>
-              const CircularProgressIndicator(),
-              errorWidget: (context, url, error) =>
-              const Icon(Icons.broken_image),
-            )
+                    imageUrl: widget.message.msg,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) =>
+                        const CircularProgressIndicator(),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.broken_image),
+                  )
                 : Text(
-              widget.message.msg,
-              style: TextStyle(fontSize: 15, color: Colors.black87),
-            ),
+                    widget.message.msg,
+                    style: TextStyle(fontSize: 15, color: Colors.black87),
+                  ),
           ),
         ),
-        Row(children: [
-
-          ///time of message sent
-          Text(
-            MyDateUtil.getFormattedTime(context: context, time: widget.message.sent),
-            style: TextStyle(fontSize: 13, color: Colors.black54),
-          ),
-          SizedBox(width:mq.height*.01),
-          // ///double tick blue icon for message read
-          // if(widget.message.read.isNotEmpty)
-          //   const Icon(Icons.done_all_rounded,color: Colors.lightBlue,),
-        ],)
-
-
+        Row(
+          children: [
+            ///time of message sent
+            Text(
+              MyDateUtil.getFormattedTime(
+                context: context,
+                time: widget.message.sent,
+              ),
+              style: TextStyle(fontSize: 13, color: Colors.black54),
+            ),
+            SizedBox(width: mq.height * .01),
+            // ///double tick blue icon for message read
+            // if(widget.message.read.isNotEmpty)
+            //   const Icon(Icons.done_all_rounded,color: Colors.lightBlue,),
+          ],
+        ),
       ],
     );
   }
 
   ///our or user message
   Widget _greenmessage() {
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         //message content
         Row(
           children: [
-            SizedBox(width:mq.height*.02),
+            SizedBox(width: mq.height * .02),
+
             ///double tick blue icon for message read
             if (widget.message.read.isNotEmpty)
               const Icon(Icons.done_all_rounded, color: Colors.lightBlue)
             else
               const Icon(Icons.done_all_rounded, color: Colors.grey),
+
             /// for adding some space
-            SizedBox(width:mq.height*.01),
+            SizedBox(width: mq.height * .01),
 
             //sent time
             Text(
-              MyDateUtil.getFormattedTime(context: context, time: widget.message.sent),
+              MyDateUtil.getFormattedTime(
+                context: context,
+                time: widget.message.sent,
+              ),
               style: TextStyle(fontSize: 13, color: Colors.black54),
             ),
           ],
@@ -142,20 +153,20 @@ class _MessageCardState extends State<MessageCard> {
 
             child: widget.message.type == Type.images
                 ? ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
-                imageUrl: widget.message.msg,
-                fit: BoxFit.cover,
-                placeholder: (context, url) =>
-                const CircularProgressIndicator(),
-                errorWidget: (context, url, error) =>
-                const Icon(Icons.broken_image),
-              ),
-            )
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      imageUrl: widget.message.msg,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          const CircularProgressIndicator(),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.broken_image),
+                    ),
+                  )
                 : Text(
-              widget.message.msg,
-              style: TextStyle(fontSize: 15, color: Colors.black87),
-            ),
+                    widget.message.msg,
+                    style: TextStyle(fontSize: 15, color: Colors.black87),
+                  ),
           ),
         ),
       ],
