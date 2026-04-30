@@ -1,12 +1,15 @@
 import 'dart:developer';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:untitled2/Api/apies.dart';
 import 'package:untitled2/main.dart';
-
+import 'package:saver_gallery/saver_gallery.dart';
+import '../helper/dialogs.dart';
 import '../helper/my_date_util.dart';
 import '../models/message.dart';
+import 'package:http/http.dart' as http;
+
 
 class MessageCard extends StatefulWidget {
   const MessageCard({super.key, required this.message});
@@ -21,11 +24,12 @@ class _MessageCardState extends State<MessageCard> {
   @override
   Widget build(BuildContext context) {
     bool isMe = APIs.user.uid == widget.message.fromId;
-    return InkWell(onLongPress: () {
-
-      
-    },
-        child: isMe ? _greenmessage() : _bluemessage());
+    return InkWell(
+      onLongPress: () {
+        _showBottomSheet(isMe);
+      },
+      child: isMe ? _greenmessage() : _bluemessage(),
+    );
   }
 
   ///sender or another user message
@@ -170,6 +174,172 @@ class _MessageCardState extends State<MessageCard> {
           ),
         ),
       ],
+    );
+  }
+
+  ///bottom sheet for picking profile pic for user
+  void _showBottomSheet(bool isMe) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadiusGeometry.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (_) {
+        return ListView(
+          shrinkWrap: true,
+
+          children: [
+            Container(
+              height: 4,
+              margin: EdgeInsets.symmetric(
+                vertical: mq.height * .015,
+                horizontal: mq.width * .4,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            widget.message.type == Type.text
+                ?
+                  ///copy option
+                  _OtionItem(
+                    icon: Icon(
+                      Icons.copy_all_rounded,
+                      color: Colors.blue,
+                      size: 26,
+                    ),
+                    name: 'Copy Text',
+                    onTap: () async {
+                      await Clipboard.setData(
+                        ClipboardData(text: widget.message.msg),
+                      ).then((value) {
+                        Navigator.pop(context);
+                        Dialogs.showsnackbar(context, 'Text Copied');
+                      });
+                    },
+                  )
+                :
+                  ///image save option
+                  _OtionItem(
+                    icon: Icon(
+                      Icons.download_rounded,
+                      color: Colors.blue,
+                      size: 26,
+                    ),
+                    name: 'Save Image',
+                    // ✅ NAYA - ye lagao
+                    onTap: () async {
+                      try {
+                        final response = await http.get(Uri.parse(widget.message.msg));
+                        await SaverGallery.saveImage(
+                          response.bodyBytes,
+                          fileName: 'zeechat_${DateTime.now().millisecondsSinceEpoch}',
+                          androidRelativePath: "Pictures/ZeeChat", skipIfExists: true,
+                        );
+                        Navigator.pop(context);
+                        Dialogs.showsnackbar(context, 'Image Saved!');
+                      } catch (e) {
+                        Dialogs.showsnackbar(context, 'Failed to save image');
+                      }
+                    },
+                  ),
+
+            ///seprator
+            if (isMe)
+              Divider(
+                color: Colors.grey,
+                endIndent: mq.width * .04,
+                indent: mq.width * .04,
+              ),
+
+            ///edit option
+            if (widget.message.type == Type.text && isMe)
+              _OtionItem(
+                icon: Icon(Icons.edit, color: Colors.blue, size: 26),
+                name: 'Edit Message',
+                onTap: () {},
+              ),
+
+            ///delete option
+            if (isMe)
+              _OtionItem(
+                icon: Icon(Icons.delete_forever, color: Colors.red, size: 26),
+                name: 'Delete Message',
+                onTap: () async {
+                  await APIs.deleteMessage(widget.message).then((value) {
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+
+
+            ///seprator
+            Divider(
+              color: Colors.grey,
+              endIndent: mq.width * .04,
+              indent: mq.width * .04,
+            ),
+
+            ///sent time
+            if(isMe)
+            _OtionItem(
+              icon: Icon(Icons.schedule, color: Colors.blue),
+              name:
+                  'Sent At ${MyDateUtil.getMessageTime(context: context, time: widget.message.sent)}',
+              onTap: () {},
+            ),
+
+            ///read time
+            if(isMe)
+            _OtionItem(
+              icon: Icon(Icons.done_all, color: Colors.green),
+              name: widget.message.read.isEmpty
+                  ? "Read At : Not Seen yet"
+                  : 'Read At ${MyDateUtil.getMessageTime(context: context, time: widget.message.read)}',
+              onTap: () {},
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class showsnackbar {}
+
+class _OtionItem extends StatelessWidget {
+  final Icon icon;
+  final String name;
+  final VoidCallback onTap;
+  const _OtionItem({
+    super.key,
+    required this.icon,
+    required this.name,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => onTap(),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: mq.width * .05,
+          top: mq.height * .015,
+          bottom: mq.height * .015,
+        ),
+        child: Row(
+          children: [
+            icon,
+            Flexible(child: Text('   $name')),
+          ],
+        ),
+      ),
     );
   }
 }

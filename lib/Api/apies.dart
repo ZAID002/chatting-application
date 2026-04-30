@@ -36,8 +36,12 @@ class APIs {
       }
     });
   }
-/// for sending push notifications
-  static Future<void> sendPushNotification(ChatUser chatUser, String msg) async {
+
+  /// for sending push notifications
+  static Future<void> sendPushNotification(
+    ChatUser chatUser,
+    String msg,
+  ) async {
     try {
       final response = await post(
         Uri.parse('https://server-zeechat.onrender.com/send-notification'),
@@ -55,6 +59,7 @@ class APIs {
       log('\nsendPushNotification Error: $e');
     }
   }
+
   ///for checking if user exist or not
   static Future<bool> userExists() async {
     return (await firestore.collection('User').doc(user.uid).get()).exists;
@@ -200,5 +205,12 @@ class APIs {
         .limit(1)
         .orderBy('sent', descending: true)
         .snapshots();
+  }
+
+  static Future<void> deleteMessage(Message message) async {
+    await firestore
+        .collection('chats/${getConversationID(message.toId)}/messages')
+        .doc(message.sent)
+        .delete();
   }
 }

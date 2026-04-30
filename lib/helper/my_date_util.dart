@@ -10,6 +10,41 @@ class MyDateUtil {
     final date = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
     return TimeOfDay.fromDateTime(date).format(context);
   }
+///get message formatted time for bottomsheet in chat screen used in message_card.dart
+  static String getMessageTime({
+    required BuildContext context,
+    required String time,
+  }) {
+    final DateTime sent =
+    DateTime.fromMillisecondsSinceEpoch(int.parse(time));
+    final DateTime now = DateTime.now();
+
+    final String formattedTime =
+    TimeOfDay.fromDateTime(sent).format(context);
+
+    // TODAY
+    if (now.day == sent.day &&
+        now.month == sent.month &&
+        now.year == sent.year) {
+      return formattedTime;
+    }
+
+    // YESTERDAY
+    final DateTime yesterday = now.subtract(const Duration(days: 1));
+    if (yesterday.day == sent.day &&
+        yesterday.month == sent.month &&
+        yesterday.year == sent.year) {
+      return '$formattedTime Yesterday';
+    }
+
+    // SAME YEAR
+    if (now.year == sent.year) {
+      return '$formattedTime ${sent.day} ${_getMonth(sent)}';
+    }
+
+    // DIFFERENT YEAR
+    return '$formattedTime ${sent.day} ${_getMonth(sent)} ${sent.year}';
+  }
 
   ///get last message time (used in chat user card)
   static String getLastMesssageTime({

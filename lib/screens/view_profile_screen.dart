@@ -8,96 +8,154 @@ import '../main.dart';
 
 class ViewProfileScreen extends StatefulWidget {
   final ChatUser user;
-
   const ViewProfileScreen({super.key, required this.user});
 
   @override
-  State<ViewProfileScreen> createState() => _ProfileScreen();
+  State<ViewProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreen extends State<ViewProfileScreen> {
+class _ProfileScreenState extends State<ViewProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(title: Text(widget.user.name)),
-        floatingActionButton: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Joined On' + ':',
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Text(
-              MyDateUtil.getLastMesssageTime(
-                context: context,
-                time: widget.user.createdAt,
-                showYear: true,
-              ),
-              style: const TextStyle(color: Colors.black54, fontSize: 16),
-            ),
-          ],
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: const Text('Profile',style: TextStyle(fontWeight: FontWeight.bold),),
+          elevation: 0,
+          backgroundColor: Colors.blueAccent,
+          foregroundColor: Colors.blueAccent,
         ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: SingleChildScrollView(
-            child: Column(
+        body: Column(
+          children: [
+            // --- Top Profile Header ---
+            Stack(
+              alignment: Alignment.center,
               children: [
-                //for adding some space
-                SizedBox(width: mq.width, height: mq.height * .03),
-
-                ///image from server
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(mq.height * .1),
-                  child: CachedNetworkImage(
-                    width: mq.height * .2,
-                    height: mq.height * .2,
-                    fit: BoxFit.cover,
-                    imageUrl: widget.user.image,
-                    errorWidget: (context, url, error) =>
-                        CircleAvatar(child: Icon(Icons.person)),
+                // Background Blue Shape
+                Container(
+                  height: mq.height * .20,
+                  decoration: const BoxDecoration(
+                    color: Colors.blueAccent,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(50),
+                      bottomRight: Radius.circular(50),
+                    ),
                   ),
                 ),
 
-                SizedBox(height: mq.height * .03),
-
-                ///for showing email text
-                Text(
-                  widget.user.email,
-                  style: const TextStyle(color: Colors.black87, fontSize: 16),
-                ),
-                SizedBox(height: mq.height * .02),
-
-                ///user about
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'About' + ":",
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                // Profile Image with Border
+                Positioned(
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(mq.height * .1),
+                      child: CachedNetworkImage(
+                        width: mq.height * .18,
+                        height: mq.height * .18,
+                        fit: BoxFit.cover,
+                        imageUrl: widget.user.image,
+                        errorWidget: (context, url, error) => const CircleAvatar(
+                          child: Icon(Icons.person, size: 50),
+                        ),
                       ),
                     ),
-
-                    Text(
-                      widget.user.about,
-                      style: const TextStyle(
-                        color: Colors.black54,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          ),
+
+            const SizedBox(height: 15),
+
+            // User Name & Email
+            Text(
+              widget.user.name,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              widget.user.email,
+              style: const TextStyle(fontSize: 15, color: Colors.black54),
+            ),
+
+            const SizedBox(height: 25),
+
+            // --- Info Section (Cards) ---
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    // About Card
+                    _buildInfoCard(
+                      icon: Icons.info_outline,
+                      label: "About",
+                      value: widget.user.about,
+                      iconColor: Colors.blueAccent,
+                    ),
+
+                    const SizedBox(height: 15),
+
+
+                  ],
+                ),
+              ),
+            ),
+
+            // --- Bottom Fixed Section (Joined Date) ---
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: RichText(
+                text: TextSpan(
+                  style: const TextStyle(color: Colors.black87, fontSize: 14),
+                  children: [
+                    const TextSpan(text: 'Joined ZeeChat on: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(
+                      text: MyDateUtil.getLastMesssageTime(
+                          context: context,
+                          time: widget.user.createdAt,
+                          showYear: true
+                      ),
+                      style: const TextStyle(color: Colors.blueAccent),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Widget for Information Cards
+  Widget _buildInfoCard({required IconData icon, required String label, required String value, required Color iconColor}) {
+    return Card(
+      elevation: 0.5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.grey.shade200)),
+      color: Colors.grey.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: iconColor, size: 24),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: const TextStyle(color: Colors.black45, fontSize: 13, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 5),
+                  Text(
+                    value,
+                    style: const TextStyle(color: Colors.black87, fontSize: 16, height: 1.3),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

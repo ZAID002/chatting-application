@@ -37,6 +37,7 @@ dependencies:
   firebase_auth: ^4.17.0
   #for handling google signin
   google_sign_in: ^6.2.1
+
   #firebase cloud store data base
   cloud_firestore: ^4.1.0
   # The following adds the Cupertino Icons font to your application.
@@ -48,7 +49,8 @@ dependencies:
   image_picker: ^0.8.6
   # for accessing cloudinary storage
   cloudinary_public: ^0.23.1
-
+#image save in gallery_saver:
+  saver_gallery: ^4.1.1
   #for firebase messaging push notification
   firebase_messaging: ^14.2.0
   #for calling rest apis
