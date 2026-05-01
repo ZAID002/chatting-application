@@ -310,7 +310,7 @@ class _MessageCardState extends State<MessageCard> {
   }
 }
 
-class showsnackbar {}
+
 
 class _OtionItem extends StatelessWidget {
   final Icon icon;

@@ -61,11 +61,30 @@ class APIs {
   }
 
   ///for checking if user exist or not
+  static Future<bool> addChatUser(String email) async {
+    final data = await firestore
+        .collection('User')
+        .where('email', isEqualTo: email)
+        .get();
+    if (data.docs.isNotEmpty && data.docs.first.id != user.uid) {
+      firestore
+          .collection('User')
+          .doc(user.uid)
+          .collection('my_users')
+          .doc(data.docs.first.id)
+          .set({});
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  ///for adding an chatuser for our conservation
   static Future<bool> userExists() async {
     return (await firestore.collection('User').doc(user.uid).get()).exists;
   }
 
-  //for getting current user info
+  ///for getting current user info
   static Future<void> getSelfInfo() async {
     (await firestore.collection('User').doc(user.uid).get().then((user) async {
       if (user.exists) {
@@ -100,12 +119,45 @@ class APIs {
         .set(chatUser.toJson()));
   }
 
-  ///for getting all user from firestore data base
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() {
+  ///for getting ids of known user from databse
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getMyUsersIds() {
     return firestore
         .collection('User')
-        .where('id', isNotEqualTo: user.uid)
+        .doc(user.uid)
+        .collection('my_users')
         .snapshots();
+  }
+
+  ///for getting all user from firestore data base
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers(
+    List<String> userIds,
+  ) {
+    // 1. Check list is empty
+    if (userIds.isEmpty) {
+      // Agar list khali hai toh empty snapshots return karein taake app crash na ho
+      return firestore
+          .collection('User')
+          .where('id', isEqualTo: '')
+          .snapshots();
+    }
+
+    // 2. Agar list mein data hai toh query chalayein
+    return firestore
+        .collection('User')
+        .where(
+          'id',
+          whereIn: userIds,
+        ) // Yaad rakhein field ka naam 'id' hona chahiye (ya jo aapne database mein rakha hai)
+        .snapshots();
+  }
+
+  ///for adding an user in the user list when first message is sent
+  static Future<void> sendFirstMessage(
+    ChatUser chatUser,
+    String msg,
+    Type msgType,
+  ) async {
+    (await firestore.collection('User').doc(chatUser.id).collection('my_user').doc(user.uid).set({}).then((value) => sendMessage(chatUser,msg,msgType: msgType)));
   }
 
   ///for updating user info
@@ -196,7 +248,7 @@ class APIs {
         }, SetOptions(merge: true));
   }
 
-  //get only a last message of a specific chat
+  ///get only a last message of a specific chat
   static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessages(
     ChatUser user,
   ) {
