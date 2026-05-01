@@ -15,6 +15,7 @@ class CloudinaryService {
     final request = http.MultipartRequest("POST", url);
 
     request.fields['upload_preset'] = uploadPreset;
+    request.fields['folder'] = 'chat_images';
     request.files.add(
       await http.MultipartFile.fromPath('file', file.path),
     );

@@ -2,6 +2,7 @@ import 'dart:core';
 import 'dart:developer';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -32,22 +33,23 @@ class _ProfileScreen extends State<ProfileScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(title: const Text(' Profile Screen')),
-        //floating add button to add new user
+        ///floating add button to add new user
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: FloatingActionButton.extended(
             backgroundColor: Colors.redAccent,
             onPressed: () async {
-              //fix class is used from helper directory /progress_bar_fix.dart
-              //for showing progress dialog
+              ///fix class is used from helper directory /progress_bar_fix.dart
+              ///for showing progress dialog
               Fix.showprogress(context);
+              await APIs.updateActiveStatus(false);
               //signout from app
               await APIs.auth.signOut().then((value) async {
                 await GoogleSignIn().signOut().then((value) {
                   //for hiding progress dialog
                   Navigator.pop(context);
                   Navigator.pop(context);
-
+APIs.auth=FirebaseAuth.instance;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (_) => LoginScreen()),
@@ -230,7 +232,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    fixedSize: Size(mq.width * .3, mq.height * .15),
+                    fixedSize: Size(mq.width * .3, mq.height * .10),
                   ),
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
@@ -270,19 +272,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                     }
                   },
 
-                  // onPressed: () async {
-                  //   final ImagePicker picker = ImagePicker();
-                  //    // Pick an image.
-                  //   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                  //   if(image!= null){
-                  //     log('Image_path ${image.path} ');
-                  //     setState(() {
-                  //       _image= image.path;
-                  //     });
-                  //    ///for hiding bottom sheet
-                  //     Navigator.pop(context);
-                  //   }
-                  // },
+
                   child: Image.asset('assets/images/add_image.png'),
                 ),
 
@@ -290,12 +280,12 @@ class _ProfileScreen extends State<ProfileScreen> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    fixedSize: Size(mq.width * .3, mq.height * .15),
+                    fixedSize: Size(mq.width * .3, mq.height * .10),
                   ),
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
                     final XFile? image = await picker.pickImage(
-                      source: ImageSource.gallery,
+                      source: ImageSource.camera,
                     );
 
                     if (image != null) {
