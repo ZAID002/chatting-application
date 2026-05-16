@@ -55,6 +55,7 @@ key.properties
 # Firebase files (agar use kar rahe ho)
 google-services.json
 GoogleService-Info.plist
+firebase.json
 
 # Logs & temp
 *.lock

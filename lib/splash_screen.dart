@@ -91,8 +91,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
 
-    // 2 sec delay, phir Home / Login
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    // 1 sec delay, phir Home / Login
+    Future.delayed(const Duration(milliseconds: 1000), () {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(statusBarColor: Colors.white,systemNavigationBarColor: Colors.white),
@@ -135,7 +135,7 @@ class _SplashScreenState extends State<SplashScreen> {
             bottom: mq.height * 0.15,
             width: mq.width,
             child: const Text(
-              'Just Made for u ❤️',
+              'Hi 🤝️',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 19, color: Colors.black87),
             ),

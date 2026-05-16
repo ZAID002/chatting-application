@@ -2,6 +2,7 @@ import 'dart:core';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:untitled2/Api/apies.dart';
 import 'package:untitled2/helper/my_date_util.dart';
 import 'package:untitled2/models/chat_user.dart';
 import '../main.dart';
@@ -22,10 +23,10 @@ class _ProfileScreenState extends State<ViewProfileScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: const Text('Profile',style: TextStyle(fontWeight: FontWeight.bold),),
+          title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
           elevation: 0,
           backgroundColor: Colors.blueAccent,
-          foregroundColor: Colors.blueAccent,
+          foregroundColor: Colors.white, // Text aur back arrow white karne ke liye
         ),
         body: Column(
           children: [
@@ -97,7 +98,65 @@ class _ProfileScreenState extends State<ViewProfileScreen> {
 
                     const SizedBox(height: 15),
 
+                    // --- DYNAMIC BLOCK / UNBLOCK CARD ---
+                    StreamBuilder(
+                      stream: APIs.isUserBlocked(widget.user.id),
+                      builder: (context, snapshot) {
+                        final isBlocked = snapshot.hasData && snapshot.data!.exists;
 
+                        return InkWell(
+                          onTap: () async {
+                            if (isBlocked) {
+                              // Agar pehle se blocked hai toh unblock karo
+                              await APIs.unblockUser(widget.user).then((value) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('User Unblocked Successfully!'))
+                                );
+                              });
+                            } else {
+                              // Agar blocked nahi hai toh block karo
+                              await APIs.blockUser(widget.user).then((value) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('User Blocked Successfully!'))
+                                );
+                              });
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Card(
+                            elevation: 0.5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isBlocked ? Colors.green.shade200 : Colors.red.shade200,
+                              ),
+                            ),
+                            color: isBlocked ? Colors.green.shade50 : Colors.red.shade50,
+                            child: Padding(
+                              padding: const EdgeInsets.all(15.0),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isBlocked ? Icons.check_circle_outline : Icons.block,
+                                    color: isBlocked ? Colors.green : Colors.red,
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 15),
+                                  Text(
+                                    isBlocked ? "Unblock User" : "Block User",
+                                    style: TextStyle(
+                                      color: isBlocked ? Colors.green.shade800 : Colors.red.shade800,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
