@@ -9,7 +9,7 @@ import '../helper/dialogs.dart';
 import '../helper/my_date_util.dart';
 import '../models/message.dart';
 import 'package:http/http.dart' as http;
-
+import '../helper/colors.dart';
 
 class MessageCard extends StatefulWidget {
   const MessageCard({super.key, required this.message});
@@ -107,7 +107,7 @@ class _MessageCardState extends State<MessageCard> {
     );
   }
 
-  ///our or user message
+  ///our message
   Widget _greenmessage() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -145,8 +145,8 @@ class _MessageCardState extends State<MessageCard> {
             ),
 
             decoration: BoxDecoration(
-              color: Colors.green.shade100,
-              border: Border.all(color: Colors.lightGreen, width: 2),
+              color: ZeeColors.primary,
+              border: Border.all(color: ZeeColors.primary, width: 2),
               //for round corners
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(30),
@@ -169,7 +169,7 @@ class _MessageCardState extends State<MessageCard> {
                   )
                 : Text(
                     widget.message.msg,
-                    style: TextStyle(fontSize: 15, color: Colors.black87),
+                    style: TextStyle(fontSize: 15, color: ZeeColors.primaryLight),
                   ),
           ),
         ),

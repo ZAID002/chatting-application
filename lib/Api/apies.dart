@@ -39,9 +39,9 @@ class APIs {
 
   /// for sending push notifications
   static Future<void> sendPushNotification(
-    ChatUser chatUser,
-    String msg,
-  ) async {
+      ChatUser chatUser,
+      String msg,
+      ) async {
     try {
       final response = await post(
         Uri.parse('https://server-zeechat.onrender.com/send-notification'),
@@ -72,7 +72,9 @@ class APIs {
           .doc(user.uid)
           .collection('my_users')
           .doc(data.docs.first.id)
-          .set({});
+          .set({
+        'last_message_time': DateTime.now().millisecondsSinceEpoch.toString(),
+      });
       return true;
     } else {
       return false;
@@ -125,13 +127,14 @@ class APIs {
         .collection('User')
         .doc(user.uid)
         .collection('my_users')
+        .orderBy('last_message_time', descending: true) // Latest time stamp upar lanay k liye
         .snapshots();
   }
 
   ///for getting all user from firestore data base
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers(
-    List<String> userIds,
-  ) {
+      List<String> userIds,
+      ) {
     // 1. Check list is empty
     if (userIds.isEmpty) {
       // Agar list khali hai toh empty snapshots return karein taake app crash na ho
@@ -145,19 +148,36 @@ class APIs {
     return firestore
         .collection('User')
         .where(
-          'id',
-          whereIn: userIds,
-        ) // Yaad rakhein field ka naam 'id' hona chahiye (ya jo aapne database mein rakha hai)
+      'id',
+      whereIn: userIds,
+    ) // Yaad rakhein field ka naam 'id' hona chahiye (ya jo aapne database mein rakha hai)
         .snapshots();
   }
 
   ///for adding an user in the user list when first message is sent
   static Future<void> sendFirstMessage(
-    ChatUser chatUser,
-    String msg,
-    Type msgType,
-  ) async {
-    (await firestore.collection('User').doc(chatUser.id).collection('my_user').doc(user.uid).set({}).then((value) => sendMessage(chatUser,msg,msgType: msgType)));
+      ChatUser chatUser,
+      String msg,
+      Type msgType,
+      ) async {
+    final time = DateTime.now().millisecondsSinceEpoch.toString();
+
+    await firestore
+        .collection('User')
+        .doc(chatUser.id)
+        .collection('my_users')
+        .doc(user.uid)
+        .set({'last_message_time': time}).then((value) async {
+
+      await firestore
+          .collection('User')
+          .doc(user.uid)
+          .collection('my_users')
+          .doc(chatUser.id)
+          .set({'last_message_time': time});
+
+      sendMessage(chatUser, msg, msgType: msgType);
+    });
   }
 
   ///for updating user info
@@ -171,8 +191,8 @@ class APIs {
 
   ///for geting spcific user info
   static Stream<QuerySnapshot<Map<String, dynamic>>> getUserInfo(
-    ChatUser chatUser,
-  ) {
+      ChatUser chatUser,
+      ) {
     return firestore
         .collection('User')
         .where('id', isEqualTo: chatUser.id)
@@ -203,8 +223,8 @@ class APIs {
 
   ///for getting all messages for specific conversation from firestore database
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessages(
-    ChatUser user,
-  ) {
+      ChatUser user,
+      ) {
     return firestore
         .collection('chats/${getConversationID(user.id)}/messages')
         .orderBy('sent', descending: true)
@@ -213,10 +233,10 @@ class APIs {
 
   ///for sending message
   static Future<void> sendMessage(
-    ChatUser chatUser,
-    String msg, {
-    required Type msgType,
-  }) async {
+      ChatUser chatUser,
+      String msg, {
+        required Type msgType,
+      }) async {
     ///message sending time also use as a id
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -233,6 +253,23 @@ class APIs {
       'chats/${getConversationID(chatUser.id)}/messages',
     );
     await ref.doc(time).set(message.toJson());
+
+    // Update last message time stamp for current user
+    await firestore
+        .collection('User')
+        .doc(user.uid)
+        .collection('my_users')
+        .doc(chatUser.id)
+        .set({'last_message_time': time}, SetOptions(merge: true));
+
+    // Update last message time stamp for receiver user
+    await firestore
+        .collection('User')
+        .doc(chatUser.id)
+        .collection('my_users')
+        .doc(user.uid)
+        .set({'last_message_time': time}, SetOptions(merge: true));
+
     await sendPushNotification(chatUser, msgType == Type.text ? msg : 'image');
   }
 
@@ -244,14 +281,14 @@ class APIs {
         .collection('chats/${getConversationID(message.fromId)}/messages')
         .doc(message.sent)
         .set({
-          'read': DateTime.now().millisecondsSinceEpoch.toString(),
-        }, SetOptions(merge: true));
+      'read': DateTime.now().millisecondsSinceEpoch.toString(),
+    }, SetOptions(merge: true));
   }
 
   ///get only a last message of a specific chat
   static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessages(
-    ChatUser user,
-  ) {
+      ChatUser user,
+      ) {
     return firestore
         .collection('chats/${getConversationID(user.id)}/messages')
         .limit(1)
@@ -264,5 +301,44 @@ class APIs {
         .collection('chats/${getConversationID(message.toId)}/messages')
         .doc(message.sent)
         .delete();
+  }
+  ////for checking is user blocked or not by current user
+// 1. User ko Block karne ke liye
+  static Future<void> blockUser(ChatUser chatUser) async {
+    await firestore
+        .collection('User')
+        .doc(user.uid) // Aapki ID
+        .collection('blocked_users')
+        .doc(chatUser.id) // Jisay block karna hai uski ID
+        .set({'blocked_at': DateTime.now().millisecondsSinceEpoch.toString()});
+  }
+
+// 2. User ko Unblock karne ke liye
+  static Future<void> unblockUser(ChatUser chatUser) async {
+    await firestore
+        .collection('User')
+        .doc(user.uid)
+        .collection('blocked_users')
+        .doc(chatUser.id)
+        .delete();
+  }
+
+// 3. Block status check karne ke liye (Real-time Stream)
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> isUserBlocked(String chatUserId) {
+    return firestore
+        .collection('User')
+        .doc(user.uid)
+        .collection('blocked_users')
+        .doc(chatUserId)
+        .snapshots();
+  }
+  // current user check other user blocked me or not
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> amIBlockedByOther(String chatUserId) {
+    return firestore
+        .collection('User')
+        .doc(chatUserId) //Samney wale ki ID
+        .collection('blocked_users')
+        .doc(user.uid) // MINE ID
+        .snapshots();
   }
 }

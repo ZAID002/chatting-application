@@ -43,3 +43,19 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Local config (IMPORTANT)
+android/local.properties
+ios/Flutter/Generated.xcconfig
+
+# API Keys / Secrets
+.env
+*.env
+key.properties
+
+# Firebase files (agar use kar rahe ho)
+google-services.json
+GoogleService-Info.plist
+firebase.json
+
+# Logs & temp
+*.lock

@@ -70,12 +70,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   stream: APIs.getAllMessages(widget.user),
                   builder: (context, snapshot) {
                     switch (snapshot.connectionState) {
-                      ///if data is loading
+                    ///if data is loading
                       case ConnectionState.waiting:
                       case ConnectionState.none:
                         return const SizedBox();
 
-                      /// if some date is loaded or loading
+                    /// if some date is loaded or loading
                       case ConnectionState.active:
                       case ConnectionState.done:
                         final data = snapshot.data?.docs;
@@ -84,7 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             data
                                 ?.map((e) => Message.fromJson(e.data()))
                                 .toList() ??
-                            [];
+                                [];
 
                         if (_list.isNotEmpty) {
                           return ListView.builder(
@@ -167,7 +167,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
 
               ///user profile
-               ClipRRect(
+              ClipRRect(
                 borderRadius: BorderRadius.circular(mq.height * .3),
                 child: CachedNetworkImage(
                   width: mq.height * .055,
@@ -201,8 +201,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   Text(
                     list.isNotEmpty
                         ? list[0].isOnline
-                              ? 'Online'
-                              : MyDateUtil.getLastActiveTime(context: context, lastActive: list[0].lastActive)
+                        ? 'Online'
+                        : MyDateUtil.getLastActiveTime(context: context, lastActive: list[0].lastActive)
                         : MyDateUtil.getLastActiveTime(context: context, lastActive: widget.user.lastActive),
                     style: TextStyle(
                       fontSize: 13,
@@ -219,94 +219,140 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+
   ///bottom chat input text field
   Widget _chatInput() {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: mq.height * .01,
-        horizontal: mq.width * .023,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+    return StreamBuilder(
+      stream: APIs.isUserBlocked(widget.user.id), // Kya maine block kiya?
+      builder: (context, snapshot1) {
+        final iBlockedThem = snapshot1.hasData && snapshot1.data!.exists;
+
+        return StreamBuilder(
+          stream: APIs.amIBlockedByOther(widget.user.id), // /> Kya unhone mujhe block kiya?
+          builder: (context, snapshot2) {
+            final theyBlockedMe = snapshot2.hasData && snapshot2.data!.exists;
+
+            // If user is blocked then show a warning message that user is blocked
+            if (iBlockedThem || theyBlockedMe) {
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: mq.height * .01,
+                  horizontal: mq.width * .023,
+                ),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.red.withOpacity(0.2)),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.block, color: Colors.red, size: 20),
+                        const SizedBox(width: 10),
+                        Text(
+                          iBlockedThem
+                              ? 'You have blocked this user.'
+                              : 'Conversation restricted by the user.',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            // If user is not blocked, then show the normal chat input field
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: mq.height * .01,
+                horizontal: mq.width * .023,
               ),
-              color: Colors.white,
               child: Row(
                 children: [
-                  ///icon button for emoji
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.emoji_emotions),
-                    color: Colors.blueAccent,
-                    iconSize: 25,
-                  ),
-
-                  ///text field for input message
                   Expanded(
-                    child: TextField(
-                      controller: _textController,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      decoration: InputDecoration(
-                        hintText: 'type a message',
-                        hintStyle: TextStyle(color: Colors.blueAccent),
-                        border: InputBorder.none,
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      color: Colors.white,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 12), // ⭐ Fix: padding taake text boundaries par stick na kare
+
+                          ///text field for input message
+                          Expanded(
+                            child: TextField(
+                              controller: _textController,
+                              keyboardType: TextInputType.multiline,
+                              maxLines: null,
+                              decoration: const InputDecoration(
+                                hintText: 'type a message',
+                                hintStyle: TextStyle(color: Colors.blueAccent),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+
+                          ///pick image from gallery gallery
+                          IconButton(
+                            onPressed: () {
+                              _sendMultipleImages();
+                            },
+                            icon: const Icon(Icons.image),
+                            color: Colors.blueAccent,
+                            iconSize: 26,
+                          ),
+
+                          ///take image from camera
+                          IconButton(
+                            onPressed: () {
+                              _sendImageFromCamera();
+                            },
+                            icon: const Icon(Icons.camera_alt_rounded),
+                            color: Colors.blueAccent,
+                            iconSize: 26,
+                          ),
+                        ],
                       ),
                     ),
                   ),
 
-                  ///pick image from gallery gallery
-                  IconButton(
+                  ///send messages button
+                  MaterialButton(
+                    minWidth: 0,
                     onPressed: () {
-                      _sendMultipleImages();
+                      if (_textController.text.isNotEmpty) {
+                        //on first message add user in my_user collection
+                        if (_list.isEmpty) {
+                          APIs.sendFirstMessage(widget.user, _textController.text, Type.text);
+                        } else {
+                          //simple send message
+                          APIs.sendMessage(widget.user, _textController.text, msgType: Type.text);
+                          _textController.text = '';
+                        }
+                      }
                     },
-                    icon: Icon(Icons.image),
-                    color: Colors.blueAccent,
-                    iconSize: 26,
-                  ),
-
-                  ///take image from camera
-                  IconButton(
-                    onPressed: () {
-                      _sendImageFromCamera();
-                    },
-                    icon: Icon(Icons.camera_alt_rounded),
-                    color: Colors.blueAccent,
-                    iconSize: 26,
+                    padding: const EdgeInsets.only(top: 10, bottom: 10, right: 5, left: 10),
+                    shape: const CircleBorder(),
+                    color: Colors.green,
+                    child: const Icon(Icons.send, color: Colors.white, size: 28),
                   ),
                 ],
               ),
-            ),
-          ),
-
-          ///send messages button
-          MaterialButton(
-            minWidth: 0,
-            onPressed: () {
-              if (_textController.text.isNotEmpty) {
-                //on first message ad user in my_user collection
-                if(_list.isEmpty){
-                  APIs.sendFirstMessage(widget.user, _textController.text, Type.text);
-                }
-                else{
-                  //simple send message
-                APIs.sendMessage(widget.user, _textController.text,msgType: Type.text);
-                _textController.text = '';}
-              }
-            },
-            padding: EdgeInsets.only(top: 10, bottom: 10, right: 5, left: 10),
-            shape: CircleBorder(),
-            color: Colors.green,
-            child: Icon(Icons.send, color: Colors.white, size: 28),
-          ),
-
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
-
   }
 }
 class ImagePreviewScreen extends StatelessWidget {
